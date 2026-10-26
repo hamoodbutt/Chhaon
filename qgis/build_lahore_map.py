@@ -1,6 +1,3 @@
-"""Fix Chhaon project styling, build the print layout, export PDF + PNG.
-Usage: python3.12 build_layout.py <project.qgz> <out_dir>
-"""
 import os, sys
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 from qgis.core import (
@@ -35,7 +32,6 @@ allb = by_name("all_blocks")
 for nm, l in [("lst", lst), ("ndvi", ndvi), ("top", top)]:
     assert l is not None and l.isValid(), f"{nm} layer missing/invalid (data files not next to project?)"
 
-# ---- 1. LST: band 1, fixed 32-52, continuous blue->red ramp
 ramp = QgsStyle.defaultStyle().colorRamp("Spectral"); ramp.invert()
 crs_ = QgsColorRampShader(32, 52, ramp, Qgis.ShaderInterpolationMethod.Linear, Qgis.ShaderClassificationMethod.Continuous)
 crs_.setColorRampItemList([QgsColorRampShader.ColorRampItem(32 + i * 2.5, ramp.color(i / 8), f"{32 + i*2.5:g}") for i in range(9)])
@@ -45,7 +41,6 @@ r = QgsSingleBandPseudoColorRenderer(lst.dataProvider(), 1, sh)
 r.setClassificationMin(32); r.setClassificationMax(52)
 lst.setRenderer(r); lst.setName("Land surface temperature (°C)")
 
-# ---- 2. NDVI copy: rename, keep style, hide
 ndvi.setName("Vegetation index (NDVI)")
 root = p.layerTreeRoot()
 root.findLayer(ndvi.id()).setItemVisibilityChecked(False)
@@ -53,7 +48,6 @@ if allb is not None:
     allb.setName("All blocks (table only)")
     root.findLayer(allb.id()).setItemVisibilityChecked(False)
 
-# ---- 3. Top-25: no fill, red outline, rank labels
 sym = QgsFillSymbol.createSimple({"style": "no", "outline_color": "220,0,0,255",
                                   "outline_width": "0.6", "outline_width_unit": "MM",
                                   "joinstyle": "miter"})
@@ -78,7 +72,6 @@ if rank_field:
 for l in (lst, ndvi, top):
     l.triggerRepaint()
 
-# ---- 4. Layout (A4 landscape)
 lm = p.layoutManager()
 old = lm.layoutByName("Chhaon Priority Map")
 if old: lm.removeLayout(old)
@@ -99,7 +92,6 @@ label("CHHAON", 10, 7, 180, 12, 24, bold=True, color=ACCENT)
 label("Lahore Urban Heat & Tree-Planting Priorities", 10, 19, 200, 9, 15, bold=True)
 label("Landsat land surface temperature composite · May–June, 2021–2025", 10, 28, 200, 7, 9.5, color=MUTED)
 
-# map
 mp = QgsLayoutItemMap(lay)
 MAP_H = 165; MAP_W = round(MAP_H * lst.extent().width() / lst.extent().height(), 1)
 mp.attemptMove(QgsLayoutPoint(10, 37, MM)); mp.attemptResize(QgsLayoutSize(MAP_W, MAP_H, MM))
@@ -115,7 +107,6 @@ if mp.crs() != lst.crs():
 mp.zoomToExtent(ext)
 mp.setScale(mp.scale() * 1.01)
 
-# north arrow (top-right of map)
 na = QgsLayoutItemPicture(lay)
 svg = next((os.path.join(d, "arrows", "NorthArrow_02.svg") for d in QgsApplication.svgPaths()
             if os.path.exists(os.path.join(d, "arrows", "NorthArrow_02.svg"))), None)
@@ -125,7 +116,6 @@ if svg:
     na.setBackgroundEnabled(True); na.setFrameEnabled(False); na.setBackgroundColor(QColor(255, 255, 255, 200))
     lay.addLayoutItem(na)
 
-# scale bar (bottom-left of map)
 sb = QgsLayoutItemScaleBar(lay); sb.setStyle("Single Box"); sb.setLinkedMap(mp)
 sb.setUnits(Qgis.DistanceUnit.Kilometers); sb.setUnitLabel("km")
 sb.setUnitsPerSegment(2); sb.setNumberOfSegments(3); sb.setNumberOfSegmentsLeft(0)
@@ -135,7 +125,6 @@ tf = QgsTextFormat(); tf.setFont(QFont("DejaVu Sans")); tf.setSize(7.5); sb.setT
 sb.attemptMove(QgsLayoutPoint(13, 190, MM))
 lay.addLayoutItem(sb); sb.update()
 
-# legend (right column)
 lg = QgsLayoutItemLegend(lay); lg.setLinkedMap(mp); lg.setAutoUpdateModel(False)
 lg.setTitle("Legend")
 lroot = lg.model().rootGroup(); lroot.removeAllChildren()
@@ -157,7 +146,6 @@ lay.addLayoutItem(lg); lg.adjustBoxSize()
 
 COLX = 10 + MAP_W + 10; COLW = 287 - COLX
 
-# ---- detail inset for the north-west cluster
 INSET_RECT = QgsRectangle(408750, 3500250, 427000, 3513150)
 label("Detail: north-west hotspot cluster (21 of the 25 blocks)", COLX, 72, COLW, 5, 8.5, bold=True)
 im = QgsLayoutItemMap(lay); im.setId("Inset")
@@ -194,7 +182,6 @@ lay.addLayoutItem(nl)
 
 lm.addLayout(lay)
 
-# ---- 5. Export
 os.makedirs(out_dir, exist_ok=True)
 ex = QgsLayoutExporter(lay)
 pdf = QgsLayoutExporter.PdfExportSettings(); pdf.dpi = 300; pdf.rasterizeWholeImage = False

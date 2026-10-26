@@ -1,6 +1,3 @@
-"""Build Chhaon DHA QGIS project + layout + exports.
-Usage: python build_dha.py <data_dir>   (project + exports are written into data_dir)
-"""
 import os, sys
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 from qgis.core import (
@@ -29,7 +26,6 @@ bnd = QgsVectorLayer(os.path.join(d, f"{P}_boundary.shp"), "Study area", "ogr")
 for l in (lst, ndvi, blocks, top, bnd):
     assert l.isValid(), l.name()
 
-# LST style: continuous blue->red, 40-50 °C
 ramp = QgsStyle.defaultStyle().colorRamp("Spectral"); ramp.invert()
 LO, HI = 40, 50
 crs_ = QgsColorRampShader(LO, HI, ramp, Qgis.ShaderInterpolationMethod.Linear, Qgis.ShaderClassificationMethod.Continuous)
@@ -38,7 +34,6 @@ sh = QgsRasterShader(LO, HI); sh.setRasterShaderFunction(crs_)
 r = QgsSingleBandPseudoColorRenderer(lst.dataProvider(), 1, sh); r.setClassificationMin(LO); r.setClassificationMax(HI)
 lst.setRenderer(r)
 
-# NDVI style (band 2), hidden by default
 g = QgsStyle.defaultStyle().colorRamp("BrBG") or QgsStyle.defaultStyle().colorRamp("Greens")
 c2 = QgsColorRampShader(0, 0.5, g, Qgis.ShaderInterpolationMethod.Linear, Qgis.ShaderClassificationMethod.Continuous)
 c2.setColorRampItemList([QgsColorRampShader.ColorRampItem(i * 0.0625, g.color(i / 8), f"{i*0.0625:.2f}") for i in range(9)])
@@ -67,7 +62,6 @@ for l in (top, bnd, blocks, lst, ndvi):
 root.findLayer(ndvi.id()).setItemVisibilityChecked(False)
 root.findLayer(blocks.id()).setItemVisibilityChecked(False)
 
-# ---------- layout ----------
 lay = QgsPrintLayout(p); lay.initializeDefaults(); lay.setName("Chhaon DHA Priority Map")
 lay.pageCollection().page(0).setPageSize("A4", QgsLayoutItemPage.Orientation.Landscape)
 MM = Qgis.LayoutUnit.Millimeters

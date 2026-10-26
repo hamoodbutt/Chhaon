@@ -21,7 +21,6 @@ def scalebar(ax,x0,y0,km=0.5,fs=7,col='white'):
     ax.add_patch(Rectangle((x0,y0),km*1000,30,fc=col,ec='black',lw=.5))
     ax.text(x0+km*500,y0+60,f'{km:g} km',ha='center',va='bottom',fontsize=fs,color=col,weight='bold')
 
-# ---- Figure 1: 4 areas, heat vs satellite ----
 fig,axes=plt.subplots(4,2,figsize=(8.5,15.5),dpi=170)
 H=1100
 for i,(k,(name,ranks)) in enumerate(groups.items()):
@@ -45,14 +44,13 @@ fig.text(0.03,0.006,"Data: USGS Landsat 8/9 · ESA Copernicus Sentinel-2 · plac
 plt.subplots_adjust(left=0.03,right=0.97,top=0.945,bottom=0.035,hspace=0.18,wspace=0.04)
 plt.savefig('Chhaon_DHA_Heat_vs_Satellite.png'); plt.close()
 
-# ---- Figure 2: whole study area side by side ----
 fig,axes=plt.subplots(1,2,figsize=(14,5.4),dpi=170)
 im=axes[0].imshow(lst,extent=E_lst,cmap=cmap,vmin=40,vmax=50,interpolation='bilinear')
 axes[1].imshow(rgb,extent=E_rgb,interpolation='bilinear')
 for ax in axes:
     outlines(ax,lw=1.3,fs=7); ax.set_xlim(E_rgb[0],E_rgb[1]); ax.set_ylim(E_rgb[2],E_rgb[3]); setup(ax)
     for k,(name,ranks) in groups.items():
-        pts=np.vstack([P[r] for r in ranks]); 
+        pts=np.vstack([P[r] for r in ranks]);
         ax.text(pts[:,0].min()-120,pts[:,1].mean(),k,ha='right',va='center',fontsize=12,weight='bold',color='white',
                 bbox=dict(boxstyle='circle,pad=0.25',fc='#222',ec='white',lw=.8))
 scalebar(axes[0],E_lst[0]+500,E_lst[2]+500,km=2,col='black',fs=8); scalebar(axes[1],E_lst[0]+500,E_lst[2]+500,km=2,fs=8)
